@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# Unpacks a .pptx file and makes XML readable by diff tools.
+
+PPTX=$1
+
+# Remove the .pptx extension
+DIR=${PPTX%.*}
+
+# Unzip the presentation into a folder
+unzip $PPTX -d $DIR
+
+# Prettify the XML so its easier to diff.
+find $DIR -name "*.xml" -o -name "*.xml.rels" -type f -exec xmllint --output '{}' --format '{}' \;

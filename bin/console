@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+# This console is usefulf or interacting with a presentation, which makes debugging
+# a little easier since this is mostly munging with files.
+
+require 'pry'
+require 'power_point'
+
+PowerPoint::Presentation.open(ARGV.first || 'Presentation3.pptx').pry
