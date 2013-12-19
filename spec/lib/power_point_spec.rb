@@ -11,7 +11,7 @@ describe PowerPoint do
     let(:slide) { subject.slides.first }
 
     it "should have notes" do
-      slide.notes.should =~ /Poll A/
+      slide.notes.body.should =~ /Poll A/
     end
   end
 end

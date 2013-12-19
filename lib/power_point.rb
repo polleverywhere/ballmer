@@ -59,9 +59,18 @@ module PowerPoint
     end
   end
 
+  # Manages concerns around keeping slide and notesSlides files in
+  # sync with an array of slides.
+  class Slides
+
+  end
+
+
   # Load a slide up in thar.
   class Slide
     CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.presentationml.slide+xml"
+
+    attr_reader :notes
 
     def initialize(presentation, path)
       @presentation, @path = presentation, Pathname.new(path)
@@ -73,19 +82,7 @@ module PowerPoint
 
       # Lets grab what we can, then start to resolve some more paths from the rels doc.
       @slide = @presentation.xml path
-      @notes = @presentation.xml notes_path
-    end
-
-    def notes
-      # TODO, there are three types of notes. We need to figure out 
-      # how to resolve the slide number, notes, and whatever the hell else
-      # the first note type is.
-
-      # Grab each paragram, then each line within that pragraph.
-      # @notes.xpath('//p:txBody/a:p').map{ |ap| ap.xpath('//a:t') }.join("\n\n")
-
-      # For now, I'm just going to splat out the whole damn thing.
-      @notes.xpath('//a:t').map(&:text).join("\n\n")
+      @notes = Notes.new(presentation, notes_path)
     end
 
   private
@@ -96,6 +93,23 @@ module PowerPoint
   end
 
   class Notes
+    # TODO, there are three types of notes. We need to figure out 
+    # how to resolve the slide number, notes, and whatever the hell else
+    # the first note type is.
+
     TYPE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide'
+
+    def initialize(presentation, path)
+      @presentation, @path = presentation, Pathname.new(path)
+      @xml = @presentation.xml @path
+    end
+
+    # TODO - Generate/update the notes with a mark-down-ish heuristic, 
+    # being that two newlines translate into the weird note formats of PPT slides.
+    def body=(body); end;
+    def body
+      @xml.xpath('//a:t').map(&:text).join("\n\n")
+    end
+    alias :to_s :body
   end
 end
