@@ -30,7 +30,7 @@ module PowerPoint
     
     # Query the [Content_Types].xml file to resolves paths to other parts in the zipfile.
     def parts(type)
-      @file_handler.xml(CONTENT_TYPES_PATH).css("Override[ContentType='#{type}']").map{ |p| p['PartName'] }
+      @file_handler.xml(CONTENT_TYPES_PATH).xpath("//xmlns:Override[@ContentType='#{type}']").map{ |p| p['PartName'] }
     end
   end
 
@@ -69,7 +69,7 @@ module PowerPoint
       # Open the rels file for this slide to see what other assets are at play.
       rels_path = Pathname.new(path).join('../_rels', Pathname.new(path).sub_ext('.xml.rels').basename)
       rels = @presentation.xml rels_path
-      notes_path = Pathname.new(rels.css("Relationship[Type='#{Notes::TYPE}']").first['Target']).expand_path(@path.dirname)
+      notes_path = Pathname.new(rels.xpath("//xmlns:Relationship[@Type='#{Notes::TYPE}']").first['Target']).expand_path(@path.dirname)
 
       # Lets grab what we can, then start to resolve some more paths from the rels doc.
       @slide = @presentation.xml path
