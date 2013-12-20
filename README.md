@@ -1,6 +1,7 @@
 # PowerPoint
 
-TODO: Write a gem description
+The PowerPoint gem makes it possible to manipulate PowerPoint files
+via Ruby at the most basic level.
 
 ## Installation
 
@@ -18,7 +19,14 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+# Open a pptx file
+p = PowerPoint::Presentation.open("./fixtures/Presentation3.pptx")
+# Copy the first slide into the last position
+p.sides.push p.slides.first
+# Now save the file.
+p.save
+```
 
 ## Contributing
 
