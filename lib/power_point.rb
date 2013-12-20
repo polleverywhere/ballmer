@@ -48,20 +48,35 @@ module PowerPoint
     end
 
     def content_types
-      xml(Presentation::CONTENT_TYPES_PATH)
-    end
-
-    # TODO - Extract this into its own class... for now lets just deal here for
-    # convience.    
-    # Query the [Content_Types].xml file to resolves paths to other parts in the zipfile.
-    def parts(type)
-      content_types.xpath("//xmlns:Override[@ContentType='#{type}']").map{ |p| p['PartName'] }
+      ContentTypes.new(self)
     end
 
   private
     # Normalize the path and resolve relative paths, if given.
     def path(path)
       Pathname.new(path).expand_path('/').to_s.gsub(/^\//, '')
+    end
+  end
+
+  # Deals with everything related to content paths.
+  class ContentTypes
+    PATH = "[Content_Types].xml"
+
+    attr_reader :path, :pptx
+
+    def initialize(pptx, path = PATH)
+      @pptx, @path = pptx, path
+    end
+
+    # Get all of the parts for a given type
+    # TODO - Have this return an enumerable of parts so we can fitler by part-type.
+    def parts(type)
+      xml.xpath("//xmlns:Override[@ContentType='#{type}']").map{ |n| n['PartName'] }
+    end
+    alias :[] :parts
+
+    def xml
+      pptx.xml(path)
     end
   end
 
@@ -77,7 +92,8 @@ module PowerPoint
     end
 
     def each(&block)
-      parts.each { |path| block.call Slide.new(@pptx, path) }
+      # TODO - Do NOT read content-types, but read Rels instead (and move this type casting in there.)
+      @pptx.content_types[Slide::CONTENT_TYPE].each { |path| block.call slide path }
     end
 
     def push(slide)
@@ -87,7 +103,8 @@ module PowerPoint
       slide_rels_path = Pathname.new("/ppt/slides/_rels/slide#{n}.xml.rels")
       slide_notes_path = Pathname.new("/ppt/notesSlides/notesSlide#{n}.xml")
       slide_notes_rels_path = Pathname.new("/ppt/notesSlides/_rels/notesSlide#{n}.xml.rels")
-      presentation_path = Pathname.new("/ppt/_rels/presentation.xml.rels")
+      presentation_rels_path = Pathname.new("/ppt/_rels/presentation.xml.rels")
+      presentation_path = Pathname.new("/ppt/presentation.xml")
 
       # Update ./ppt
       #   !!! CREATE !!!
@@ -107,33 +124,29 @@ module PowerPoint
       #   !!! UPDATES !!!
       # Update the notes in the new slide to point at the new notes
       @pptx.edit_xml slide_rels_path do |xml|
-        # TODO the slide_notes_path needs to be relative... like ../slideNotes
-        # and not absolute.
-        puts xml.at_xpath("//xmlns:Relationship[@Type='#{Notes::REL_TYPE}']")['Target'] = slide_notes_path.relative_path_from(slide_path.dirname)
-        puts xml.to_s
+        # TODO - Move this rel logic into the parts so that we don't have to repeat ourselves when calculating this stuff out.
+        xml.at_xpath("//xmlns:Relationship[@Type='#{Notes::REL_TYPE}']")['Target'] = slide_notes_path.relative_path_from(slide_path.dirname)
       end
 
       # Update teh slideNotes reference to point at the new slide
       @pptx.edit_xml slide_notes_rels_path do |xml|
-        # TODO the slide_notes_path needs to be relative... like ../slideNotes
-        # and not absolute.
         xml.at_xpath("//xmlns:Relationship[@Type='#{Slide::REL_TYPE}']")['Target'] = slide_path.relative_path_from(slide_notes_path.dirname)
       end
 
       #   ./_rels/presentation.xml.rels
       #     Update Relationship ids
       #     Insert a new one slideRef
-      @pptx.edit_xml presentation_path do |xml|
+      @pptx.edit_xml presentation_rels_path do |xml|
         # Calucate the next id
         next_id = xml.xpath('//xmlns:Relationship[@Id]').map{ |n| n['Id'] }.sort.last.succ
         # TODO - Figure out how to make this more MS idiomatic up 9->10 instead of incrementing
         # the character....
         # Insert that into the slide and crakc open the presentation.xml file
         types = xml.at_xpath('/xmlns:Relationships')
-        types << Nokogiri::XML::Node.new("Override", xml).tap do |n|
+        types << Nokogiri::XML::Node.new("Relationship", xml).tap do |n|
           n['Id'] = next_id
           n['Type'] = Slide::REL_TYPE
-          n['PartName'] = slide_path.relative_path_from(presentation_path.dirname)
+          n['Target'] = slide_path.relative_path_from(presentation_path.dirname)
         end
         #   ./presentation.xml
         #     Update attr
@@ -144,14 +157,14 @@ module PowerPoint
           slides = xml.at_xpath('/p:presentation/p:sldIdLst')
           next_slide_id = slides.xpath('//p:sldId[@id]').map{ |n| n['id'] }.sort.last.succ
           slides << Nokogiri::XML::Node.new("p:sldId", xml).tap do |n|
-            n['id'] = next_slide_id
-            n['r:id'] = next_id
+            p n['id'] = next_slide_id
+            p n['r:id'] = next_id
           end
         end
       end
 
       # Update ./[Content-Types].xml with new slide link and slideNotes link
-      @pptx.edit_xml Presentation::CONTENT_TYPES_PATH do |xml|
+      @pptx.edit_xml ContentTypes::PATH do |xml|
         types = xml.at_xpath('/xmlns:Types')
         types << Nokogiri::XML::Node.new("Override", xml).tap do |n|
           n['PartName'] = slide_path
@@ -163,14 +176,18 @@ module PowerPoint
         end
       end
 
-      to_a.last
+      # Great, that's all done, so lets return the slide eh?
+      slide slide_path
     end
 
   private
+    def slide(path)
+      Slide.new(@pptx, path) 
+    end
     # Reads from the [Content_Types].xml file the paths for the slide
     #   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
     def parts
-      @pptx.parts Slide::CONTENT_TYPE
+      @pptx.content_types.parts Slide::CONTENT_TYPE
     end
 
     # Microsoft decided it would be cool to start at 1 instead of 0 
@@ -212,6 +229,10 @@ module PowerPoint
       xml.xpath("//xmlns:Relationship[@Type='#{type}']").map{ |n| Pathname.new(n['Target']) }
     end
 
+    def xml
+      pptx.xml(@path)
+    end
+
     # Create a Rels class from a given part.
     def self.relative_to(part)
       new part.pptx, rels_path(part.path), part.path
@@ -220,14 +241,6 @@ module PowerPoint
     # Resolve the default rels asset for a given part path.
     def self.rels_path(part_path)
       Pathname.new(part_path).join('../_rels', Pathname.new(part_path).sub_ext('.xml.rels').basename)
-    end
-
-    def self.relative_path(part_path, relative_part_path)
-      Pathname.new(relative_part_path).relative_path_from(Pathname.new(part_path))
-    end
-
-    def xml
-      pptx.xml(@path)
     end
   end
 

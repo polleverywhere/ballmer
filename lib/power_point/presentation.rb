@@ -1,9 +1,15 @@
 require "zip"
 
+Zip.setup do |c|
+    # c.on_exists_proc = true
+    # c.continue_on_exists_proc = true
+  c.unicode_names = true
+end
+  
 module PowerPoint
   # Represents a presentation that has many slides.
   class Presentation
-    CONTENT_TYPES_PATH = "[Content_Types].xml"
+    attr_reader :pptx
 
     def initialize(zip)
       @pptx = PPTX.new(zip)
@@ -11,7 +17,7 @@ module PowerPoint
 
     # Save the .pptx file to disk.
     def save
-      @pptx.save
+      pptx.save
     end
 
     # Return an array of slides.
@@ -21,7 +27,7 @@ module PowerPoint
 
     # Open a PPTX file from the given path.
     def self.open(path)
-      new Zip::File.open(path)
+      new Zip::File.new(path, Zip::File::CREATE)
     end
   end
 end
