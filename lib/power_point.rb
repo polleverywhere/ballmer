@@ -20,13 +20,15 @@ module PowerPoint
       #   app.xml slides, notes, counts, etc
       #   core.xml Times
       entries.each do |path, buffer|
-        path = path.to_s
+        p path
+        p path = path.to_s
         if @original_files.include? path
           @zip.replace_buffer path, buffer
         else
           @zip.add_buffer path, buffer
         end
       end
+      @zip.commit
     end
 
     # Open an XML document at the given path.
@@ -41,17 +43,17 @@ module PowerPoint
 
     # Write to the zip file at the given path.
     def write(path, buffer)
-      entries[path] = buffer
+      entries[path(path)] = buffer
     end
 
     # Read the blog from the Zifile
     def read(path)
-      entries[path]
+      entries[path(path)]
     end
 
     def entries
       @entries ||= Hash.new do |h,k|
-        k = path(k)
+        k = path(k).to_s
         h[k] = if @original_files.include? k
           zip.fopen(k).read
         else
@@ -75,7 +77,7 @@ module PowerPoint
   private
     # Normalize the path and resolve relative paths, if given.
     def path(path)
-      Pathname.new(path).expand_path('/').to_s.gsub(/^\//, '')
+      Pathname.new(path).expand_path('/').relative_path_from(Pathname.new('/'))
     end
   end
 
