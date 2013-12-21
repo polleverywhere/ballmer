@@ -1,11 +1,5 @@
-require "zip"
+require "zipruby"
 
-Zip.setup do |c|
-    # c.on_exists_proc = true
-    # c.continue_on_exists_proc = true
-  c.unicode_names = true
-end
-  
 module PowerPoint
   # Represents a presentation that has many slides.
   class Presentation
@@ -27,7 +21,7 @@ module PowerPoint
 
     # Open a PPTX file from the given path.
     def self.open(path)
-      new Zip::File.new(path, Zip::File::CREATE)
+      new Zip::Archive.open(path, Zip::TRUNC)
     end
   end
 end

@@ -11,6 +11,7 @@ module PowerPoint
 
     def initialize(zip)
       @zip = zip
+      @original_files = (0...zip.num_files).map { |n| zip.get_name(n) }
     end
 
     def save
@@ -18,7 +19,14 @@ module PowerPoint
       # Update ./docProps
       #   app.xml slides, notes, counts, etc
       #   core.xml Times
-      @zip.commit
+      entries.each do |path, buffer|
+        path = path.to_s
+        if @original_files.include? path
+          @zip.replace_buffer path, buffer
+        else
+          @zip.add_buffer path, buffer
+        end
+      end
     end
 
     # Open an XML document at the given path.
@@ -28,23 +36,36 @@ module PowerPoint
 
     # Modify XML within a block and write it back to the zip when done.
     def edit_xml(path, &block)
-      xml = xml(path).tap(&block)
-      write(path){ |io| io.write xml.to_s }
+      write path, xml(path).tap(&block).to_s
     end
 
     # Write to the zip file at the given path.
-    def write(path, &block)
-      @zip.get_output_stream path(path), &block
+    def write(path, buffer)
+      entries[path] = buffer
     end
 
     # Read the blog from the Zifile
     def read(path)
-      zip.read path(path)
+      entries[path]
+    end
+
+    def entries
+      @entries ||= Hash.new do |h,k|
+        k = path(k)
+        h[k] = if @original_files.include? k
+          zip.fopen(k).read
+        else
+          ""
+        end
+      end
+    end
+
+    def original_files
     end
 
     # Copy a file in the zip from a path to a path.
     def copy(target, source)
-      write(target){ |io| io.write read(source) }
+      write target, read(source)
     end
 
     def content_types
