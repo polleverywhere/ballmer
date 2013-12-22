@@ -11,9 +11,18 @@ describe PowerPoint do
 
   context "slide" do
     let(:slide) { subject.slides.first }
+    let(:note)  { "The pig jumped over the fence.\n\nThe pig then squealed." }
 
-    it "should have notes" do
-      slide.notes.body.should =~ /Poll A/
+    context "notes" do
+      it "should have notes" do
+        slide.notes.body.should =~ /Poll A/
+      end
+
+      it "should edit notes" do
+        slide.notes.body = note
+        slide.notes.body.should == note
+        # slide.notes.xml.at_xpath('//p:txBody/a:p/a:r/a:t').content.should == "The pig jumped over the fence and got hit by a truck."
+      end
     end
   end
 

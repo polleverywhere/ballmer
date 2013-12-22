@@ -3,83 +3,7 @@ require "nokogiri"
 
 module PowerPoint
   autoload :Presentation, 'power_point/presentation'
-
-  # Deals with file concerns between higher-level classes like
-  # Slides, Notes and file-system level work.
-  class PPTX
-    attr_reader :zip
-
-    def initialize(zip)
-      @zip = zip
-      @original_files = (0...zip.num_files).map { |n| zip.get_name(n) }
-    end
-
-    def save
-      # TODO
-      # Update ./docProps
-      #   app.xml slides, notes, counts, etc
-      #   core.xml Times
-      entries.each do |path, buffer|
-        p path
-        p path = path.to_s
-        if @original_files.include? path
-          @zip.replace_buffer path, buffer
-        else
-          @zip.add_buffer path, buffer
-        end
-      end
-      @zip.commit
-    end
-
-    # Open an XML document at the given path.
-    def xml(path)
-      Nokogiri::XML read path
-    end
-
-    # Modify XML within a block and write it back to the zip when done.
-    def edit_xml(path, &block)
-      write path, xml(path).tap(&block).to_s
-    end
-
-    # Write to the zip file at the given path.
-    def write(path, buffer)
-      entries[path(path)] = buffer
-    end
-
-    # Read the blog from the Zifile
-    def read(path)
-      entries[path(path)]
-    end
-
-    def entries
-      @entries ||= Hash.new do |h,k|
-        k = path(k).to_s
-        h[k] = if @original_files.include? k
-          zip.fopen(k).read
-        else
-          ""
-        end
-      end
-    end
-
-    def original_files
-    end
-
-    # Copy a file in the zip from a path to a path.
-    def copy(target, source)
-      write target, read(source)
-    end
-
-    def content_types
-      ContentTypes.new(self)
-    end
-
-  private
-    # Normalize the path and resolve relative paths, if given.
-    def path(path)
-      Pathname.new(path).expand_path('/').relative_path_from(Pathname.new('/'))
-    end
-  end
+  autoload :PPTX,         'power_point/pptx'
 
   # Deals with everything related to content paths.
   class ContentTypes
@@ -180,8 +104,9 @@ module PowerPoint
           slides = xml.at_xpath('/p:presentation/p:sldIdLst')
           next_slide_id = slides.xpath('//p:sldId[@id]').map{ |n| n['id'] }.sort.last.succ
           slides << Nokogiri::XML::Node.new("p:sldId", xml).tap do |n|
-            p n['id'] = next_slide_id
-            p n['r:id'] = next_id
+            # TODO - Fix the ID that's jacked up.
+            n['id'] = next_slide_id
+            n['r:id'] = next_id
           end
         end
       end
@@ -229,12 +154,17 @@ module PowerPoint
     end
 
     def xml
-      pptx.xml(@path)
+      @xml ||= pptx.xml(@path)
     end
 
     # Grab the rels file for this asset.
     def rels
       Rels.relative_to(self)
+    end
+
+    # Commit the part XML to the buffer.
+    def commit
+      @pptx.write path, xml.to_s
     end
   end
 
@@ -296,10 +226,77 @@ module PowerPoint
 
     # TODO - Generate/update the notes with a mark-down-ish heuristic, 
     # being that two newlines translate into the weird note formats of PPT slides.
-    def body=(body); end;
+    def body=(body)
+      nodes_parser.parse(body)
+      commit
+    end
+
     def body
-      xml.xpath('//a:t').map(&:text).join("\n\n")
+      nodes_parser.to_s
     end
     alias :to_s :body
+
+  private
+    def nodes_parser
+      NotesParser.new(xml)
+    end
+  end
+
+  class NotesParser
+    # Make this read the language set by the OS or from a configuration.
+    DEFAULT_LANG = 'en-US'
+
+    def initialize(xml)
+      @xml = xml
+    end
+
+    # MSFT Thought it would be cool to drop a bunch of different bodies
+    # and id attributes in here that don't link to anything, so lets go
+    # loosey goosey on it and find the stupid "Notes Placeholder" content.
+    def node
+      @xml.at_xpath('
+        //p:nvSpPr[
+          p:cNvPr[starts-with(@name, "Notes Placeholder")]
+        ]/following-sibling::p:txBody
+      ')
+    end
+
+    def to_s
+      node.xpath('.//a:t').map(&:text).join("\n\n")
+    end
+
+    # Parses a text file with newline breaks into "paragraphs" per whatever weird markup
+    # the noteSlides is using. For now we're keeping this simple, no italics or other crazy stuff,
+    # but this is the class that would be extended, changed, or swapped out in the future.
+    def parse(body, lang = DEFAULT_LANG)
+      body_pr = Nokogiri::XML::Node.new("p:txBody", @xml)
+      # These should be blank... I don't know why, but they're always that way in the files.
+      #   <a:bodyPr/>
+      #   <a:lstStyle/>
+      body_pr << Nokogiri::XML::Node.new("a:bodyPr", @xml)
+      body_pr << Nokogiri::XML::Node.new("a:lstStyle", @xml)
+      # TODO - Reject blank lines after we chomp 'em
+      body.lines.map(&:chomp).reject{ |l| l == "" }.each do |line|
+        #     <a:r>
+        #       <a:rPr lang="en-US" dirty="0" smtClean="0"/>
+        #       <a:t>Poll A</a:t>
+        body_pr << Nokogiri::XML::Node.new("a:p", @xml).tap do |p|
+          p << Nokogiri::XML::Node.new("a:r", @xml).tap do |r|
+            r << Nokogiri::XML::Node.new("a:rPr", @xml).tap do |rpr|
+              # PPT just wants this, k?
+              rpr["lang"] = lang
+              rpr["dirty"] = "0"
+              rpr["smtClean"] = "0"
+            end
+            # This is where we finally inject content. w00.
+            r << Nokogiri::XML::Node.new("a:t", @xml).tap do |t|
+              t.content = line.chomp
+            end
+          end
+        end
+      end
+
+      node.replace body_pr
+    end
   end
 end
