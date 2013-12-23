@@ -1,9 +1,9 @@
-require "power_point/version"
+require "ballmer/version"
 require "nokogiri"
 
-module PowerPoint
-  autoload :Presentation, 'power_point/presentation'
-  autoload :PPTX,         'power_point/pptx'
+module Ballmer
+  autoload :Presentation, 'ballmer/presentation'
+  autoload :PPTX,         'ballmer/pptx'
 
   # Deals with everything related to content paths.
   class ContentTypes

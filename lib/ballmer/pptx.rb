@@ -1,4 +1,4 @@
-module PowerPoint
+module Ballmer
   # Deals with file concerns between higher-level classes like
   # Slides, Notes and file-system level work.
   class PPTX

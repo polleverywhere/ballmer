@@ -3,9 +3,9 @@
 # This console is usefulf or interacting with a presentation, which makes debugging
 # a little easier since this is mostly munging with files.
 
-require 'power_point'
+require 'ballmer'
 
-PowerPoint::Presentation.open(ARGV.shift).tap do |ppt|
+Ballmer::Presentation.open(ARGV.shift).tap do |ppt|
   ARGV.shift.to_i.times do |n|
     ppt.slides.push(ppt.slides.first).tap do |slide|
       slide.notes.body = "This is copy #{n}.\n\nIt was created at #{Time.now}."

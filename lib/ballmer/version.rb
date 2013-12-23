@@ -1,3 +1,3 @@
-module PowerPoint
+module Ballmer
   VERSION = "0.0.1"
 end

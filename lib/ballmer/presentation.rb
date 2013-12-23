@@ -1,6 +1,6 @@
 require "zipruby"
 
-module PowerPoint
+module Ballmer
   # Represents a presentation that has many slides.
   class Presentation
     attr_reader :pptx

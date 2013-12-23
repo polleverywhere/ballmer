@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in power_point.gemspec
+# Specify your gem's dependencies in ballmer.gemspec
 gemspec

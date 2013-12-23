@@ -4,6 +4,6 @@
 # a little easier since this is mostly munging with files.
 
 require 'pry'
-require 'power_point'
+require 'ballmer'
 
-PowerPoint::Presentation.open(ARGV.first || './fixtures/Presentation3.pptx').pry
+Ballmer::Presentation.open(ARGV.first || './fixtures/Presentation3.pptx').pry

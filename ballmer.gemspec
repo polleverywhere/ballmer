@@ -1,15 +1,15 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'power_point/version'
+require 'ballmer/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "power_point"
-  spec.version       = PowerPoint::VERSION
+  spec.name          = "ballmer"
+  spec.version       = Ballmer::VERSION
   spec.authors       = ["Brad Gessler"]
   spec.email         = ["brad@polleverywhere.com"]
-  spec.description   = %q{Open and manipulate PowerPoint files.}
-  spec.summary       = %q{Manipulate PowerPoint slides in Ruby.}
+  spec.description   = %q{Open and manipulate Ballmer files.}
+  spec.summary       = %q{Manipulate Ballmer slides in Ruby.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
