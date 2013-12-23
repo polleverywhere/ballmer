@@ -11,7 +11,6 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Open and manipulate Ballmer files.}
   spec.summary       = %q{Manipulate Ballmer slides in Ruby.}
   spec.homepage      = ""
-  spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
