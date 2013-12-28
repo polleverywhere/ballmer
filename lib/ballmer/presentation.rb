@@ -3,23 +3,23 @@ require "zipruby"
 module Ballmer
   # Represents a presentation that has many slides.
   class Presentation
-    attr_reader :pptx
+    attr_reader :doc
 
     def initialize(zip)
-      @pptx = PPTX.new(zip)
+      @doc = Document.new(zip)
     end
 
-    # Save the .pptx file to disk.
+    # Save the office XML file to disk.
     def save
-      pptx.save
+      doc.save
     end
 
     # Return an array of slides.
     def slides
-      @slides ||= Slides.new(@pptx)
+      @slides ||= Slides.new(@doc)
     end
 
-    # Open a PPTX file from the given path.
+    # Open an XML office file from the given path.
     def self.open(path)
       new Zip::Archive.open(path, Zip::TRUNC)
     end
@@ -33,13 +33,13 @@ module Ballmer
     class Slides
       include Enumerable
 
-      def initialize(pptx)
-        @pptx = pptx
+      def initialize(doc)
+        @doc = doc
       end
 
       def each(&block)
         # TODO - Do NOT read content-types, but read Rels instead (and move this type casting in there.)
-        @pptx.content_types[Slide::CONTENT_TYPE].each { |path| block.call slide path }
+        @doc.content_types[Slide::CONTENT_TYPE].each { |path| block.call slide path }
       end
 
       # This method is crazy because it has to manipulate a ton of files within the PPTX. Most of
@@ -60,32 +60,32 @@ module Ballmer
         #   ./slides
         #     Create new files
         #       ./slide(\d+).xml file
-        @pptx.copy slide_path, slide.path
+        @doc.copy slide_path, slide.path
         #       ./_rels/slide(\d+).xml.rels
-        @pptx.copy slide_rels_path, slide.rels.path
+        @doc.copy slide_rels_path, slide.rels.path
         #   ./notesSlides
         #     Create new files
         #       ./notesSlide(\d+).xml file
-        @pptx.copy slide_notes_path, slide.notes.path
+        @doc.copy slide_notes_path, slide.notes.path
         #       ./_rels/notesSlide(\d+).xml.rels
-        @pptx.copy slide_notes_rels_path, slide.notes.rels.path
+        @doc.copy slide_notes_rels_path, slide.notes.rels.path
         
         #   !!! UPDATES !!!
         # Update the notes in the new slide to point at the new notes
-        @pptx.edit_xml slide_rels_path do |xml|
+        @doc.edit_xml slide_rels_path do |xml|
           # TODO - Move this rel logic into the parts so that we don't have to repeat ourselves when calculating this stuff out.
           xml.at_xpath("//xmlns:Relationship[@Type='#{Notes::REL_TYPE}']")['Target'] = slide_notes_path.relative_path_from(slide_path.dirname)
         end
 
         # Update teh slideNotes reference to point at the new slide
-        @pptx.edit_xml slide_notes_rels_path do |xml|
+        @doc.edit_xml slide_notes_rels_path do |xml|
           xml.at_xpath("//xmlns:Relationship[@Type='#{Slide::REL_TYPE}']")['Target'] = slide_path.relative_path_from(slide_notes_path.dirname)
         end
 
         #   ./_rels/presentation.xml.rels
         #     Update Relationship ids
         #     Insert a new one slideRef
-        @pptx.edit_xml presentation_rels_path do |xml|
+        @doc.edit_xml presentation_rels_path do |xml|
           # Calucate the next id
           next_id = xml.xpath('//xmlns:Relationship[@Id]').map{ |n| n['Id'] }.sort.last.succ
           # TODO - Figure out how to make this more MS idiomatic up 9->10 instead of incrementing
@@ -102,7 +102,7 @@ module Ballmer
           #       p:notesMasterId
           #     Insert attr
           #       p:sldId, increment, etc.
-          @pptx.edit_xml '/ppt/presentation.xml' do |xml|
+          @doc.edit_xml '/ppt/presentation.xml' do |xml|
             slides = xml.at_xpath('/p:presentation/p:sldIdLst')
             next_slide_id = slides.xpath('//p:sldId[@id]').map{ |n| n['id'] }.sort.last.succ
             slides << Nokogiri::XML::Node.new("p:sldId", xml).tap do |n|
@@ -114,7 +114,7 @@ module Ballmer
         end
 
         # Update ./[Content-Types].xml with new slide link and slideNotes link
-        @pptx.edit_xml ContentTypes::PATH do |xml|
+        @doc.edit_xml Document::ContentTypes::PATH do |xml|
           types = xml.at_xpath('/xmlns:Types')
           types << Nokogiri::XML::Node.new("Override", xml).tap do |n|
             n['PartName'] = slide_path
@@ -132,12 +132,12 @@ module Ballmer
 
       private
       def slide(path)
-        Slide.new(@pptx, path) 
+        Slide.new(@doc, path) 
       end
       # Reads from the [Content_Types].xml file the paths for the slide
       #   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
       def parts
-        @pptx.content_types.parts Slide::CONTENT_TYPE
+        @doc.content_types.parts Slide::CONTENT_TYPE
       end
 
       # Microsoft decided it would be cool to start at 1 instead of 0 
@@ -148,7 +148,7 @@ module Ballmer
     end
 
     # Load a slide up in thar. 
-    class Slide < Part
+    class Slide < Document::Part
       # Key used to look up slides from [Content-Types].xml.
       CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.presentationml.slide+xml".freeze
 
@@ -159,11 +159,11 @@ module Ballmer
         # TODO - Move a type caster into rels based on content type like 
         # rels[Notes::REL_TYPE].first
         notes_path = rels.targets(Notes::REL_TYPE).first.expand_path(@path.dirname)
-        Notes.new(@pptx, notes_path)
+        Notes.new(@doc, notes_path)
       end
     end
 
-    class Notes < Part
+    class Notes < Document::Part
       # TODO, there are three types of notes. We need to figure out 
       # how to resolve the slide number, notes, and whatever the hell else
       # the first note type is.

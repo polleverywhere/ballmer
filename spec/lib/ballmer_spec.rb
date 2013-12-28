@@ -82,7 +82,7 @@ describe Ballmer do
 
       context "[Content-Type].xml" do
         it "should add slide Override" do
-          subject.pptx.content_types[Ballmer::Presentation::Slide::CONTENT_TYPE].should have(4).items
+          subject.doc.content_types[Ballmer::Presentation::Slide::CONTENT_TYPE].should have(4).items
         end
       end
 
