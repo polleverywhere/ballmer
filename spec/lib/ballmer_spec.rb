@@ -53,7 +53,7 @@ describe Ballmer do
           end
 
           it "should reference notesSlides.xml" do
-            rels = slide.rels.targets(Ballmer::Notes::REL_TYPE)
+            rels = slide.rels.targets(Ballmer::Presentation::Notes::REL_TYPE)
             rels.should have(1).item
             rels.first.to_s.should == '../notesSlides/notesSlide4.xml'
           end
@@ -73,7 +73,7 @@ describe Ballmer do
           end
 
           it "should reference slides.xml" do
-            rels = notes.rels.targets(Ballmer::Slide::REL_TYPE)
+            rels = notes.rels.targets(Ballmer::Presentation::Slide::REL_TYPE)
             rels.should have(1).item
             rels.first.to_s.should == '../slides/slide4.xml'
           end
@@ -82,7 +82,7 @@ describe Ballmer do
 
       context "[Content-Type].xml" do
         it "should add slide Override" do
-          subject.pptx.content_types[Ballmer::Slide::CONTENT_TYPE].should have(4).items
+          subject.pptx.content_types[Ballmer::Presentation::Slide::CONTENT_TYPE].should have(4).items
         end
       end
 
