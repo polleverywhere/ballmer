@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Ballmer do
+describe Ballmer::Presentation do
   subject { Ballmer::Presentation.open("./fixtures/Presentation3.pptx") }
 
   context "presentation" do
@@ -95,12 +95,15 @@ describe Ballmer do
         end
       end
     end
-  end
 
-  context "parts" do
-    it "should traverse parts" do
-      # But why????
-      # subject.slides.first.rels[Notes::REL_TYPE].first.
-    end
+    # context "#delete" do
+    #   before(:each) do
+    #     subject.slides.first.delete
+    #   end
+
+    #   it "should remove slide" do
+    #     subject.should have(2).slides
+    #   end
+    # end
   end
 end
