@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Ballmer::VERSION
   spec.authors       = ["Brad Gessler"]
   spec.email         = ["brad@polleverywhere.com"]
-  spec.description   = %q{Open and manipulate Ballmer files.}
-  spec.summary       = %q{Manipulate Ballmer slides in Ruby.}
+  spec.description   = %q{Open and manipulate Office files.}
+  spec.summary       = %q{Manipulate Office files in Ruby.}
   spec.homepage      = ""
 
   spec.files         = `git ls-files`.split($/)
@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec"
   spec.add_development_dependency "terminal-notifier-guard"
   spec.add_development_dependency "pry"
-  
+
   spec.add_dependency "zipruby"
   spec.add_dependency "nokogiri"
 end

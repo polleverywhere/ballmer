@@ -21,7 +21,6 @@ describe Ballmer do
       it "should edit notes" do
         slide.notes.body = note
         slide.notes.body.should == note
-        # slide.notes.xml.at_xpath('//p:txBody/a:p/a:r/a:t').content.should == "The pig jumped over the fence and got hit by a truck."
       end
     end
   end
@@ -82,7 +81,7 @@ describe Ballmer do
 
       context "[Content-Type].xml" do
         it "should add slide Override" do
-          subject.doc.content_types[Ballmer::Presentation::Slide::CONTENT_TYPE].should have(4).items
+          subject.content_types[Ballmer::Presentation::Slide::CONTENT_TYPE].should have(4).items
         end
       end
 

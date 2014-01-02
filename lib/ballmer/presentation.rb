@@ -1,27 +1,9 @@
-require "zipruby"
-
 module Ballmer
   # Represents a presentation that has many slides.
-  class Presentation
-    attr_reader :doc
-
-    def initialize(zip)
-      @doc = Document.new(zip)
-    end
-
-    # Save the office XML file to disk.
-    def save
-      doc.save
-    end
-
+  class Presentation < Document
     # Return an array of slides.
     def slides
-      @slides ||= Slides.new(@doc)
-    end
-
-    # Open an XML office file from the given path.
-    def self.open(path)
-      new Zip::Archive.open(path, Zip::TRUNC)
+      @slides ||= Slides.new(self)
     end
   end
 

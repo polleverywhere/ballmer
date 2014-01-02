@@ -1,3 +1,5 @@
+require "zipruby"
+
 module Ballmer
   # Deals with file concerns between higher-level classes like
   # Slides, Notes and file-system level work.
@@ -9,6 +11,7 @@ module Ballmer
       @original_files = (0...zip.num_files).map { |n| zip.get_name(n) }
     end
 
+    # Save the office XML file to the file.
     def save
       # TODO
       # Update ./docProps
@@ -23,6 +26,17 @@ module Ballmer
         end
       end
       @zip.commit
+    end
+
+    # Open an XML office file from the given path.
+    def self.open(path)
+      new Zip::Archive.open(path, Zip::TRUNC)
+    end
+
+    # Read zip data from a bufffer. Very useful when you want to load a template 
+    # into a server environment, modify, and serve up without writing to disk.
+    def self.read(data)
+      new Zip::Archive.open_buffer(data)
     end
 
     # Open an XML document at the given path.
