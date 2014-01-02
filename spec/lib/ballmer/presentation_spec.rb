@@ -96,14 +96,14 @@ describe Ballmer::Presentation do
       end
     end
 
-    # context "#delete" do
-    #   before(:each) do
-    #     subject.slides.first.delete
-    #   end
+    context "#delete" do
+      before(:each) do
+        subject.slides.delete subject.slides.first
+      end
 
-    #   it "should remove slide" do
-    #     subject.should have(2).slides
-    #   end
-    # end
+      it "should remove slide" do
+        subject.should have(3).slides
+      end
+    end
   end
 end

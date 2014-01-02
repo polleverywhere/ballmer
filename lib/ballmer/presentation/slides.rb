@@ -26,7 +26,9 @@ module Ballmer
         slide_rels_path = Pathname.new("/ppt/slides/_rels/slide#{n}.xml.rels")
         slide_notes_path = Pathname.new("/ppt/notesSlides/notesSlide#{n}.xml")
         slide_notes_rels_path = Pathname.new("/ppt/notesSlides/_rels/notesSlide#{n}.xml.rels")
+        # TODO - Move into Persentation#rels#path
         presentation_rels_path = Pathname.new("/ppt/_rels/presentation.xml.rels")
+        # TODO - Move into Persentation#path
         presentation_path = Pathname.new("/ppt/presentation.xml")
 
         # Update ./ppt
@@ -102,6 +104,61 @@ module Ballmer
 
         # Great, that's all done, so lets return the slide eh?
         slide slide_path
+      end
+
+      # Removes a slide from the slides collection
+      def delete(slide)
+        # TODO - Move into Persentation#rels#path
+        presentation_rels_path = Pathname.new("/ppt/_rels/presentation.xml.rels")
+        # TODO - Move into Persentation#path
+        presentation_path = Pathname.new("/ppt/presentation.xml")
+
+        #   ./_rels/presentation.xml.rels
+        #     Update Relationship ids
+        #     Insert a new one slideRef
+        @doc.edit_xml presentation_rels_path do |xml|
+          # Calucate the next id
+            # next_id = xml.xpath('//xmlns:Relationship[@Id]').map{ |n| n['Id'] }.sort.last.succ
+          # TODO - Figure out how to make this more MS idiomatic up 9->10 instead of incrementing
+          # the character....
+          # Insert that into the slide and crakc open the presentation.xml file
+
+          target = slide.path.relative_path_from(presentation_path.dirname)
+          relationship = xml.at_xpath("/xmlns:Relationships/xmlns:Relationship[@Type='#{Slide::REL_TYPE}' and @Target='#{target}']")
+          #   ./presentation.xml
+          #     Update attr
+          #       p:notesMasterId
+          #     Insert attr
+          #       p:sldId, increment, etc.
+          @doc.edit_xml '/ppt/presentation.xml' do |xml|
+            xml.at_xpath("/p:presentation/p:sldIdLst/p:sldId[@r:id='#{relationship['Id']}']").remove
+          end
+          relationship.remove
+        end
+
+        # Delete slide link and slideNotes link from ./[Content-Types].xml 
+        @doc.edit_xml Document::ContentTypes::PATH do |xml|
+          xml.at_xpath("/xmlns:Types/xmlns:Override[@ContentType='#{Slide::CONTENT_TYPE}' and @PartName='#{slide.path}']").remove
+          xml.at_xpath("/xmlns:Types/xmlns:Override[@ContentType='#{Notes::CONTENT_TYPE}' and @PartName='#{slide.notes.path}']").remove
+        end
+
+        # Update ./ppt
+        #   !!! DESTROY !!!
+        #   ./slides
+        #     Delete files
+        #       ./_rels/notesSlide(\d+).xml.rels
+        @doc.delete slide.notes.rels.path
+        #       ./notesSlide(\d+).xml file
+        @doc.delete slide.notes.path
+        #       ./_rels/slide(\d+).xml.rels
+        @doc.delete slide.rels.path
+        #       ./slide(\d+).xml file
+        @doc.delete slide.path
+        #   ./notesSlides
+        #     Delete files
+
+        # Hooray! We're done! Ummm, what should we return though? can't be the slide since
+        # its destroyed and there's no practical way to keep it around in memory.
       end
 
       private

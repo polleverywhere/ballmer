@@ -44,23 +44,24 @@ module Ballmer
         write target, read(source)
       end
 
+      # Remove a file from the archive.
+      def delete(path)
+        path = self.class.path(path).to_s
+        zip.fopen(path).delete
+        entries.delete(path)
+      end
+
       # Enumerates all of the entries in the zip file. Key
       # is the path of the file, and the value is the contents.
       def entries
-        @entries ||= Hash.new do |h,k|
-          k = self.class.path(k).to_s
-          h[k] = if @original_files.include? k
-            zip.fopen(k).read
+        @entries ||= Hash.new do |entries, path|
+          path = self.class.path(path).to_s
+          entries[path] = if @original_files.include? path
+            zip.fopen(path).read
           else
             ""
           end
         end
-      end
-
-      private
-      # Normalize the path and resolve relative paths, if given.
-      def self.path(path)
-        Pathname.new(path).expand_path('/').relative_path_from(Pathname.new('/'))
       end
 
       # Open an XML office file from the given path.
@@ -72,6 +73,16 @@ module Ballmer
       # into a server environment, modify, and serve up without writing to disk.
       def self.read(data)
         new Zip::Archive.open_buffer(data)
+      end
+
+      private
+
+      # All of the paths in the office file formats are expressed with a leading "/",
+      # but zip files are not since they are always considered relative the the archive
+      # root by ZipRuby. This method means that we can keep referring to paths in the 
+      # Document class on up while maintaining relative paths within the archive.
+      def self.path(path)
+        Pathname.new(path).expand_path('/').relative_path_from(Pathname.new('/'))
       end
     end
   end

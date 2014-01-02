@@ -2,12 +2,17 @@ module Ballmer
   # Deals with file concerns between higher-level classes like
   # Slides, Notes and file-system level work.
   class Document
+    autoload :Archive,      'ballmer/document/archive'
+    autoload :Part,         'ballmer/document/part'
+    autoload :Rels,         'ballmer/document/rels'
+    autoload :ContentTypes, 'ballmer/document/content_types'
+
     # Forward method calls on document to the archive, mostly
     # low-level read/write/copy file operations. The Document
     # class should deal with decorating these read/writes with
     # helper Parts.
     extend Forwardable
-    def_delegators :archive, :read, :write, :copy
+    def_delegators :archive, :read, :write, :copy, :delete, :commit
 
     attr_reader :archive
 
@@ -39,12 +44,5 @@ module Ballmer
     def content_types
       Document::ContentTypes.new(self)
     end
-  end
-
-  class Document
-    autoload :Archive,      'ballmer/document/archive'
-    autoload :Part,         'ballmer/document/part'
-    autoload :Rels,         'ballmer/document/rels'
-    autoload :ContentTypes, 'ballmer/document/content_types'
   end
 end

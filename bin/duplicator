@@ -5,10 +5,26 @@
 
 require 'ballmer'
 
-Ballmer::Presentation.open(ARGV.shift).tap do |ppt|
-  ARGV.shift.to_i.times do |n|
-    ppt.slides.push(ppt.slides.first).tap do |slide|
-      slide.notes.body = "This is copy #{n}.\n\nIt was created at #{Time.now}."
-    end
+# Deal with piped input.
+ppt = if $stdin.tty?
+  Ballmer::Presentation.open(ARGV.shift)
+else
+  Ballmer::Presentation.read($stdin.read)
+end
+
+# Now duplicate the slides.
+ARGV.shift.to_i.times do |n|
+  # Copy the first slide to the end of the presentation.
+  ppt.slides.push(ppt.slides.first).tap do |slide|
+    slide.notes.body = "This is copy #{n + 1}.\n\nIt was created at #{Time.now}."
   end
-end.save
+end
+
+# Now delete the first slide.
+ppt.slides.delete ppt.slides.first
+
+# Save to disk or buffer
+ppt.commit
+
+# Pipe this shiz out if it was piped in.
+ppt.archive.zip.read { |chunk| $stdout.write chunk } unless $stdin.tty?
