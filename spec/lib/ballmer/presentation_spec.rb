@@ -104,6 +104,32 @@ describe Ballmer::Presentation do
       it "should remove slide" do
         subject.should have(3).slides
       end
+
+      context "[Content-Type].xml" do
+        it "should remove slide"
+      end
+
+      context "presentation.xml" do
+        it "should remove slide"
+        context "_rels" do
+          it "should remove slide"
+        end
+      end
+
+      context "slide.xml" do
+        it "should delete"
+        context "rels" do
+          it "should delete"
+        end
+      end
+
+      context "noteSlide.xml" do
+        it "should delete"
+        context "rels" do
+          it "should delete"
+        end
+      end
     end
+    
   end
 end
