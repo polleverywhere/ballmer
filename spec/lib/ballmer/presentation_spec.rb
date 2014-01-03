@@ -130,6 +130,5 @@ describe Ballmer::Presentation do
         end
       end
     end
-    
   end
 end

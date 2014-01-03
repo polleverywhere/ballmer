@@ -2,20 +2,17 @@ module Ballmer
   class Document
     # CRUD and resolve relative documents to a part. These map to .xml.rel documents
     # in the MS Office document format.
-    class Rels
+    class Rels < Part
       attr_reader :path, :doc
 
       def initialize(doc, path, part_path)
-        @doc, @path, @part_path = doc, path, part_path
+        super doc, path
+        @part_path = part_path
       end
 
       # Return a list of target paths given a type.
       def targets(type)
         xml.xpath("//xmlns:Relationship[@Type='#{type}']").map{ |n| Pathname.new(n['Target']) }
-      end
-
-      def xml
-        doc.xml(@path)
       end
 
       # Create a Rels class from a given part.
