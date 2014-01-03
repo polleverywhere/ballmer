@@ -26,10 +26,6 @@ module Ballmer
         slide_rels_path = Pathname.new("/ppt/slides/_rels/slide#{n}.xml.rels")
         slide_notes_path = Pathname.new("/ppt/notesSlides/notesSlide#{n}.xml")
         slide_notes_rels_path = Pathname.new("/ppt/notesSlides/_rels/notesSlide#{n}.xml.rels")
-        # TODO - Move into Persentation#rels#path
-        presentation_rels_path = Pathname.new("/ppt/_rels/presentation.xml.rels")
-        # TODO - Move into Persentation#path
-        presentation_path = Pathname.new("/ppt/presentation.xml")
 
         # Update ./ppt
         #   !!! CREATE !!!
@@ -61,7 +57,7 @@ module Ballmer
         #   ./_rels/presentation.xml.rels
         #     Update Relationship ids
         #     Insert a new one slideRef
-        @doc.edit_xml presentation_rels_path do |xml|
+        @doc.edit_xml @doc.presentation.rels.path do |xml|
           # Calucate the next id
           next_id = xml.xpath('//xmlns:Relationship[@Id]').map{ |n| n['Id'] }.sort.last.succ
           # TODO - Figure out how to make this more MS idiomatic up 9->10 instead of incrementing
@@ -71,7 +67,7 @@ module Ballmer
           types << Nokogiri::XML::Node.new("Relationship", xml).tap do |n|
             n['Id'] = next_id
             n['Type'] = Slide::REL_TYPE
-            n['Target'] = slide_path.relative_path_from(presentation_path.dirname)
+            n['Target'] = slide_path.relative_path_from(@doc.presentation.path.dirname)
           end
           #   ./presentation.xml
           #     Update attr
@@ -90,7 +86,7 @@ module Ballmer
         end
 
         # Update ./[Content-Types].xml with new slide link and slideNotes link
-        @doc.edit_xml Document::ContentTypes::PATH do |xml|
+        @doc.edit_xml @doc.content_types.path do |xml|
           types = xml.at_xpath('/xmlns:Types')
           types << Nokogiri::XML::Node.new("Override", xml).tap do |n|
             n['PartName'] = slide_path
@@ -108,22 +104,17 @@ module Ballmer
 
       # Removes a slide from the slides collection
       def delete(slide)
-        # TODO - Move into Persentation#rels#path
-        presentation_rels_path = Pathname.new("/ppt/_rels/presentation.xml.rels")
-        # TODO - Move into Persentation#path
-        presentation_path = Pathname.new("/ppt/presentation.xml")
-
         #   ./_rels/presentation.xml.rels
         #     Update Relationship ids
         #     Insert a new one slideRef
-        @doc.edit_xml presentation_rels_path do |xml|
+        @doc.edit_xml @doc.presentation.rels.path do |xml|
           # Calucate the next id
             # next_id = xml.xpath('//xmlns:Relationship[@Id]').map{ |n| n['Id'] }.sort.last.succ
           # TODO - Figure out how to make this more MS idiomatic up 9->10 instead of incrementing
           # the character....
           # Insert that into the slide and crakc open the presentation.xml file
 
-          target = slide.path.relative_path_from(presentation_path.dirname)
+          target = slide.path.relative_path_from(@doc.presentation.path.dirname)
           relationship = xml.at_xpath("/xmlns:Relationships/xmlns:Relationship[@Type='#{Slide::REL_TYPE}' and @Target='#{target}']")
           #   ./presentation.xml
           #     Update attr
@@ -137,7 +128,7 @@ module Ballmer
         end
 
         # Delete slide link and slideNotes link from ./[Content-Types].xml 
-        @doc.edit_xml Document::ContentTypes::PATH do |xml|
+        @doc.edit_xml @doc.content_types.path do |xml|
           xml.at_xpath("/xmlns:Types/xmlns:Override[@ContentType='#{Slide::CONTENT_TYPE}' and @PartName='#{slide.path}']").remove
           xml.at_xpath("/xmlns:Types/xmlns:Override[@ContentType='#{Notes::CONTENT_TYPE}' and @PartName='#{slide.notes.path}']").remove
         end

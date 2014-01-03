@@ -14,6 +14,8 @@ module Ballmer
     extend Forwardable
     def_delegators :archive, :read, :write, :copy, :delete, :commit
 
+    # Make the archive available in case the developer needs to perform
+    # even lower level IO functions.
     attr_reader :archive
 
     def initialize(archive)
@@ -41,8 +43,14 @@ module Ballmer
       write path, xml(path).tap(&block).to_s
     end
 
+    # Content types XML file.
     def content_types
-      Document::ContentTypes.new(self)
+      ContentTypes.new(self)
+    end
+
+    # Presentation XML file.
+    def presentation
+      Part.new(self, '/ppt/presentation.xml')
     end
   end
 end
