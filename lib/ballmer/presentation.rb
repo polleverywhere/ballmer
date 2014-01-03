@@ -5,6 +5,7 @@ module Ballmer
     autoload :Slide,        'ballmer/presentation/slide'
     autoload :Notes,        'ballmer/presentation/notes'
     autoload :NotesParser,  'ballmer/presentation/notes_parser'
+    autoload :Tags,         'ballmer/presentation/tags'
     
     # Return an array of slides.
     def slides

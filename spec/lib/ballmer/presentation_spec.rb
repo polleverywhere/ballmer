@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Ballmer::Presentation do
-  subject { Ballmer::Presentation.open("./fixtures/Presentation3.pptx") }
+  subject { read_presentation('presentation3.pptx') }
 
   context "presentation" do
     it "should have slides" do
