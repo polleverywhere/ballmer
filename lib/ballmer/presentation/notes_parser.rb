@@ -34,26 +34,20 @@ module Ballmer
         body_pr << Nokogiri::XML::Node.new("a:bodyPr", @xml)
         body_pr << Nokogiri::XML::Node.new("a:lstStyle", @xml)
         # TODO - Reject blank lines after we chomp 'em
-        body.lines.map(&:chomp).reject{ |l| l == "" }.each do |line|
-          #     <a:r>
-          #       <a:rPr lang="en-US" dirty="0" smtClean="0"/>
-          #       <a:t>Poll A</a:t>
-          body_pr << Nokogiri::XML::Node.new("a:p", @xml).tap do |p|
-            p << Nokogiri::XML::Node.new("a:r", @xml).tap do |r|
-              r << Nokogiri::XML::Node.new("a:rPr", @xml).tap do |rpr|
-                # PPT just wants this, k?
-                rpr["lang"] = lang
-                rpr["dirty"] = "0"
-                rpr["smtClean"] = "0"
-              end
-              # This is where we finally inject content. w00.
-              r << Nokogiri::XML::Node.new("a:t", @xml).tap do |t|
-                t.content = line.chomp
-              end
+        body_pr << Nokogiri::XML::Node.new("a:p", @xml).tap do |p|
+          p << Nokogiri::XML::Node.new("a:r", @xml).tap do |r|
+            r << Nokogiri::XML::Node.new("a:rPr", @xml).tap do |rpr|
+              # PPT just wants this, k?
+              rpr["lang"] = lang
+              rpr["dirty"] = "0"
+              rpr["smtClean"] = "0"
+            end
+            # This is where we finally inject content. w00.
+            r << Nokogiri::XML::Node.new("a:t", @xml).tap do |t|
+              t.content = body
             end
           end
         end
-
         node.replace body_pr
       end
     end
