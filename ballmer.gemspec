@@ -11,6 +11,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Open and manipulate Office files.}
   spec.summary       = %q{Manipulate Office files in Ruby.}
   spec.homepage      = ""
+  spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
