@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# Just run the command of a ballmer-bin. I'm faking out what should eventually be a Thor CLI.
+COMMAND=$1
+
+# Now 'shift' the $1 out of the args ($@) so we can pass it up into the CLI.
+shift
+
+# And run the command
+$0/../ballmer-$COMMAND $@
