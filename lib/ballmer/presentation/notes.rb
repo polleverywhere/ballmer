@@ -1,6 +1,6 @@
 module Ballmer
   class Presentation
-    class Notes < Document::Part
+    class Notes < Document::XMLPart
       # TODO, there are three types of notes. We need to figure out 
       # how to resolve the slide number, notes, and whatever the hell else
       # the first note type is.

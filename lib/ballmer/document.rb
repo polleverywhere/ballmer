@@ -4,6 +4,7 @@ module Ballmer
   class Document
     autoload :Archive,      'ballmer/document/archive'
     autoload :Part,         'ballmer/document/part'
+    autoload :XMLPart,      'ballmer/document/xml_part'
     autoload :Rels,         'ballmer/document/rels'
     autoload :ContentTypes, 'ballmer/document/content_types'
 
@@ -46,11 +47,6 @@ module Ballmer
     # Content types XML file.
     def content_types
       ContentTypes.new(self)
-    end
-
-    # Presentation XML file.
-    def presentation
-      Part.new(self, '/ppt/presentation.xml')
     end
   end
 end

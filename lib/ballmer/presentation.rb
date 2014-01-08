@@ -11,5 +11,10 @@ module Ballmer
     def slides
       @slides ||= Slides.new(self)
     end
+
+    # Presentation XML file.
+    def presentation
+      XMLPart.new(self, '/ppt/presentation.xml')
+    end
   end
 end

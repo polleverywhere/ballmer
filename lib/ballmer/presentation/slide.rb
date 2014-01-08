@@ -1,7 +1,7 @@
 module Ballmer
   class Presentation
     # Load a slide up in thar. 
-    class Slide < Document::Part
+    class Slide < Document::XMLPart
       # Key used to look up slides from [Content-Types].xml.
       CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.presentationml.slide+xml".freeze
 

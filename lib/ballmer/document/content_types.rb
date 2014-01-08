@@ -1,7 +1,7 @@
 module Ballmer
   class Document
     # Deals with everything related to content paths.
-    class ContentTypes < Part
+    class ContentTypes < XMLPart
       PATH = "[Content_Types].xml"
 
       def initialize(doc, path = PATH)
@@ -22,14 +22,14 @@ module Ballmer
         # Don't write the part again if it already exists ya dummy
         return nil if exists? part
 
-        xml.at_xpath('/xmlns:Types').tap do |types|
-          types << Nokogiri::XML::Node.new("Override", xml).tap do |n|
-            n['PartName'] = part.path
-            n['ContentType'] = part.class::CONTENT_TYPE
+        edit_xml do |xml|
+          xml.at_xpath('/xmlns:Types').tap do |types|
+            types << Nokogiri::XML::Node.new("Override", xml).tap do |n|
+              n['PartName'] = part.path
+              n['ContentType'] = part.class::CONTENT_TYPE
+            end
           end
         end
-
-        commit
       end
       alias :<< :append
 

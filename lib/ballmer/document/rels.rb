@@ -2,7 +2,7 @@ module Ballmer
   class Document
     # CRUD and resolve relative documents to a part. These map to .xml.rel documents
     # in the MS Office document format.
-    class Rels < Part
+    class Rels < XMLPart
       attr_reader :path, :doc
 
       # TODO - Refactor the part_path business out here.
@@ -27,15 +27,16 @@ module Ballmer
       def append(part)
         return nil if exists? part
 
-        xml.at_xpath('/xmlns:Relationships').tap do |relationships|
-          relationships << Nokogiri::XML::Node.new("Relationship", xml).tap do |n|
-            n['Id'] = next_id
-            n['Type'] = part.class::REL_TYPE
-            # Rels require a strange path... still haven't quite figured it out but I need to.
-            n['Target'] = rel_path(part)
+        edit_xml do |xml|
+          xml.at_xpath('/xmlns:Relationships').tap do |relationships|
+            relationships << Nokogiri::XML::Node.new("Relationship", xml).tap do |n|
+              n['Id'] = next_id
+              n['Type'] = part.class::REL_TYPE
+              # Rels require a strange path... still haven't quite figured it out but I need to.
+              n['Target'] = rel_path(part)
+            end
           end
         end
-        commit
       end
 
       # TODO
