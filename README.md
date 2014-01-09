@@ -35,16 +35,18 @@ Or install it yourself as:
 Its highly recommended to get comfortable with [Nokogiri](http://nokogiri.org) and XPath queries. Here's an example of what Ballmer can do:
 
 ```ruby
-# Open a pptx file
-p = Ballmer::Presentation.open("./fixtures/Presentation3.pptx")
-# Copy the first slide into the last position
-p.sides.push p.slides.first
+require 'ballmer'
+
+# Open a pptx file.
+prez = Ballmer::Presentation.open Ballmer.path("../spec/fixtures/presentation3.pptx")
+# Copy the first slide into the last position.
+prez.slides.push prez.slides.first
 # Lets manipulate some XML using XPath queries and Nokogiri.
-p.edit_xml 'docProps/app.xml' do |xml|
+prez.edit_xml 'docProps/app.xml' do |xml|
   xml.at_xpath('/xmlns:Properties/xmlns:Company').content = 'Acme Inc.'
 end
-# Now save the file.
-p.save
+# Now save the file contents.
+# prez.save
 ```
 
 ## Contributing
