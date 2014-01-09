@@ -20,7 +20,9 @@ module Ballmer
       end
 
       def to_s
-        node.xpath('.//a:t').map(&:text).join("\n\n")
+        node.xpath('.//a:p').map do |p| # Put each new paragraph on a line.
+          p.xpath('.//a:t').map(&:text).join # And join up each word... turd.
+        end.join("\n")
       end
 
       # Parses a text file with newline breaks into "paragraphs" per whatever weird markup

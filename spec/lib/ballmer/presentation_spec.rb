@@ -9,22 +9,6 @@ describe Ballmer::Presentation do
     end
   end
 
-  context "slide" do
-    let(:slide) { subject.slides.first }
-    let(:note)  { "The pig jumped over the fence.\n\nThe pig then squealed." }
-
-    context "notes" do
-      it "should have notes" do
-        slide.notes.body.should =~ /Poll A/
-      end
-
-      it "should edit notes" do
-        slide.notes.body = note
-        slide.notes.body.should == note
-      end
-    end
-  end
-
   context "slides" do
     let(:original)  { subject.slides.to_a.first }
     let(:copy)      { subject.slides.push original }
