@@ -32,7 +32,7 @@ Or install it yourself as:
 
 ## Usage
 
-Its highly recommended to get comfortable with [Nokogiri](http://nokogiri.org) and XPath queries. Here's an example of what Ballmer can do:
+Its highly recommended to get comfortable with [Nokogiri](http://nokogiri.org) and [XPath queries](http://nokogiri.org/tutorials/searching_a_xml_html_document.html). Here's an example of what Ballmer can do:
 
 ```ruby
 require 'ballmer'
