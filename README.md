@@ -1,5 +1,7 @@
 # Ballmer
 
+[![Build Status](https://travis-ci.org/polleverywhere/ballmer.png?branch=master)](https://travis-ci.org/polleverywhere/ballmer)
+
 The Ballmer gem provides the basis for modifying Office documents in Ruby. It provides access to low-level primitives including:
 
 * Unzip/zip Office document formats.
