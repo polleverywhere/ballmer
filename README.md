@@ -30,7 +30,7 @@ Or install it yourself as:
 
 ```ruby
 # Open a pptx file
-p = Ballmer::PowerPoint.open("./fixtures/Presentation3.pptx")
+p = Ballmer::Presentation.open("./fixtures/Presentation3.pptx")
 # Copy the first slide into the last position
 p.sides.push p.slides.first
 # Now save the file.
@@ -39,7 +39,7 @@ p.save
 
 ## Contributing
 
-Microsoft Office is a complicating beast.
+Microsoft Office is a complicating beast. If you need to grock documents you can help!
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
@@ -49,4 +49,4 @@ Microsoft Office is a complicating beast.
 
 ## Helpful Information
 
-* [PresentationML](http://msdn.microsoft.com/en-us/library/office/gg278335.aspx)
+* [PresentationML](http://msdn.microsoft.com/en-us/library/office/gg278335.aspx) - Directory and XML structure of an Office file.
