@@ -1,4 +1,5 @@
 require "ballmer"
+require "rspec/collection_matchers"
 
 # Helpers
 module Ballmer
