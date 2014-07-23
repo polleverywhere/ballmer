@@ -9,6 +9,10 @@ describe Ballmer::Presentation do
     end
   end
 
+  it "should have slides#length" do
+    subject.slides.length.should == 3
+  end
+
   context "slides" do
     let(:original)  { subject.slides.to_a.first }
     let(:copy)      { subject.slides.push original }

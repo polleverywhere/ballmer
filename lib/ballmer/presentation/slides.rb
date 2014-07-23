@@ -13,8 +13,13 @@ module Ballmer
 
       def each(&block)
         # TODO - Do NOT read content-types, but read Rels instead (and move this type casting in there.)
-        @doc.content_types[Slide::CONTENT_TYPE].each { |path| block.call slide path }
+        slides.each { |path| block.call slide path }
       end
+
+      def size
+        slides.size
+      end
+      alias :length :size
 
       # This method is crazy because it has to manipulate a ton of files within the PPTX. Most of
       # what happens in here I figured out by diff-ing PPTX files that had copies of identical slides, but
@@ -160,6 +165,10 @@ module Ballmer
       #   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
       def parts
         @doc.content_types.parts Slide::CONTENT_TYPE
+      end
+
+      def slides
+        @doc.content_types[Slide::CONTENT_TYPE]
       end
 
       # Microsoft decided it would be cool to start at 1 instead of 0 
