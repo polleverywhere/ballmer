@@ -11,20 +11,20 @@ module Ballmer
       # Key used to look up notes from .xml.rel documents
       REL_TYPE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide'.freeze
 
-      # TODO - Generate/update the notes with a mark-down-ish heuristic, 
+      # TODO - Generate/update the notes with a mark-down-ish heuristic,
       # being that two newlines translate into the weird note formats of PPT slides.
       def body=(body)
-        nodes_parser.parse(body)
+        notes_parser.parse(body)
         commit
       end
 
       def body
-        nodes_parser.to_s
+        notes_parser.to_s
       end
       alias :to_s :body
 
       private
-      def nodes_parser
+      def notes_parser
         NotesParser.new(xml)
       end
     end
