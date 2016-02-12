@@ -1,6 +1,6 @@
 # Ballmer
 
-[![Build Status](https://travis-ci.org/polleverywhere/ballmer.png?branch=master)](https://travis-ci.org/polleverywhere/ballmer) [![Code Climate](https://codeclimate.com/repos/52ce169f6956805d89000475/badges/e90c7084bdc02bda6000/gpa.png)](https://codeclimate.com/repos/52ce169f6956805d89000475/feed)
+[![Build Status](https://travis-ci.org/polleverywhere/ballmer.png?branch=master)](https://travis-ci.org/polleverywhere/ballmer) [![Code Climate](https://codeclimate.com/github/polleverywhere/ballmer/badges/gpa.svg)](https://codeclimate.com/github/polleverywhere/ballmer)
 
 The Ballmer gem provides the basis for modifying Office documents in Ruby. It provides access to low-level primitives including:
 
